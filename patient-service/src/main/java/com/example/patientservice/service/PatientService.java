@@ -14,13 +14,13 @@ public class PatientService {
         this.patientRepository = patientRepository;
     }
 
-    public void createPatient(PatientRequest request) {
+    public Patient createPatient(PatientRequest request) {
         Patient patient = Patient.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .patientState(request.getPatientState())
                 .build();
 
-        patientRepository.save(patient);
+        return patientRepository.save(patient);
     }
 }
