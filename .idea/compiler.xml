@@ -10,12 +10,12 @@
         <module name="api-gateway" />
         <module name="config-server" />
         <module name="patient-service" />
+        <module name="order-service" />
         <module name="eureka-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="demo" target="11" />
-      <module name="order-service" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

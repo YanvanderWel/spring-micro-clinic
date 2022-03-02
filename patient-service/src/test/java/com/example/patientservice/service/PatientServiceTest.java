@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,6 +37,6 @@ class PatientServiceTest {
 
         Patient savedPatient = patientService.createPatient(request);
 
-        assertThat(savedPatient.getFirstName()).isNotNull();
+        assertThat(savedPatient.getFirst_name()).isNotNull();
     }
 }
