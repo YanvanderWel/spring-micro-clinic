@@ -1,6 +1,5 @@
-package com.example.patientservice.dto;
+package com.example.orderservice.dto;
 
-import com.example.patientservice.data.PatientState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
