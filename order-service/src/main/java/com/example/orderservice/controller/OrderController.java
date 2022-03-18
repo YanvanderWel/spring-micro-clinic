@@ -1,12 +1,14 @@
 package com.example.orderservice.controller;
 
 import com.example.orderservice.dto.OrderRequest;
-import com.example.orderservice.persistence.Order;
+import com.example.orderservice.mapper.OrderMapper;
+import com.example.orderservice.model.Order;
 import com.example.orderservice.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -14,25 +16,35 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderMapper orderMapper;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, OrderMapper orderMapper) {
         this.orderService = orderService;
+        this.orderMapper = orderMapper;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public void createOrder(@RequestBody OrderRequest orderRequest) {
         log.info("New order registration {}", orderRequest);
-        orderService.createOrder(orderRequest);
+        orderService.createOrder(orderMapper.orderRequestToOrder(orderRequest));
     }
 
-//    @GetMapping("/all/patient_id/{patient_id}")
-//    public List<Order> getActiveOrdersByPatientId(@PathVariable String patient_id) {
-//        return orderService.getActiveOrdersByPatientId(patient_id);
-//    }
+    @PutMapping("/update")
+    public void updateOrder(@RequestBody OrderRequest orderRequest) {
+        log.info("Order updated {}", orderRequest);
+        orderService.updateOrder(orderMapper.orderRequestToOrder(orderRequest));
+    }
 
-    @GetMapping("/all/active")
-    public List<Order> getAllActiveOrders() {
-        return orderService.getAllActiveOrders();
+    @PutMapping ("/decline")
+    public void declineOrder(@RequestBody OrderRequest orderRequest) {
+        log.info("Order declined {}", orderRequest);
+        orderService.declineOrder(orderMapper.orderRequestToOrder(orderRequest));
+    }
+
+    @GetMapping("/all")
+    public List<Order> getAllOrders(@RequestParam Optional<String> orderState) {
+        log.info("All {} orders received", orderState.orElse("NOT PROVIDED"));
+        return orderService.getAllOrdersByState(orderState.orElse("NOT PROVIDED"));
     }
 
 }

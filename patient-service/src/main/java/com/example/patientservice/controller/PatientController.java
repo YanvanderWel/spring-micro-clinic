@@ -1,9 +1,11 @@
 package com.example.patientservice.controller;
 
-import com.example.patientservice.mapper.PatientMapper;
-import com.example.patientservice.dto.PatientRequest;
 import com.example.patientservice.data.Order;
+import com.example.patientservice.dto.PatientRequest;
+import com.example.patientservice.mapper.PatientMapper;
+import com.example.patientservice.model.Patient;
 import com.example.patientservice.service.PatientService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
@@ -14,30 +16,29 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/patient")
+@RequiredArgsConstructor
 public class PatientController {
 
+    private final PatientMapper patientMapper;
     private final PatientService patientService;
 
-    public PatientController(PatientService patientService) {
-        this.patientService = patientService;
-    }
 
     @PostMapping("/create")
-    public void createPatient(@RequestBody PatientRequest patientRequest) {
+    public Patient createPatient(@RequestBody PatientRequest patientRequest) {
         log.info("New patient registration {}", patientRequest);
-        patientService.createPatient(PatientMapper.INSTANCE.patientRequestToPatient(patientRequest));
+        return patientService.createPatient(patientMapper.patientRequestToPatient(patientRequest));
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public void updatePatient(@RequestBody PatientRequest patientRequest) {
         log.info("Patient updated {}", patientRequest);
-        patientService.updatePatient(patientRequest);
+        patientService.updatePatient(patientMapper.patientRequestToPatient(patientRequest));
     }
 
-    @PostMapping("/deactivate")
+    @PutMapping ("/deactivate")
     public void deactivatePatient(@RequestBody PatientRequest patientRequest) {
-        log.info("New patient registration {}", patientRequest);
-        patientService.createPatient(PatientMapper.INSTANCE.patientRequestToPatient(patientRequest));
+        log.info("Patient deactivated {}", patientRequest);
+        patientService.deactivatePatient(patientMapper.patientRequestToPatient(patientRequest));
     }
 
     @GetMapping("/all")

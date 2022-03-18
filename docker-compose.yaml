@@ -11,7 +11,6 @@ services:
       PROJECT_ID: "spanner-project"
       SPANNER_EMULATOR_URL: "http://spanner:9020/"
       INSTANCE_NAME: "spanner-instance"
-#      DATABASE_NAME: "patients"
     command: >
       bash -c 'gcloud config configurations create emulator &&
               gcloud config set auth/disable_credentials true &&

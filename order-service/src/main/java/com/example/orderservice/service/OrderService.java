@@ -1,42 +1,67 @@
 package com.example.orderservice.service;
 
 import com.example.orderservice.data.OrderState;
-import com.example.orderservice.dto.OrderRequest;
-import com.example.orderservice.persistence.Order;
-import com.example.orderservice.persistence.OrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.orderservice.model.Order;
+import com.example.orderservice.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    @Autowired
-    public OrderService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
-
-    @Transactional
-    public Order createOrder(OrderRequest request) {
-        Order order = Order.builder()
-                .order_id(UUID.randomUUID().toString())
-                .patient_id(request.getPatient_id())
-//                .order_id(new Order.OrderId(request.getPatient_id(), UUID.randomUUID().toString()))
-                .order_comment(request.getOrder_comment())
-                .create_date_time_gmt(LocalDate.now())
-                .update_date_time_gmt(LocalDate.now())
-                .build();
+    public Order createOrder(Order order) {
+        order.setCreateDateTimeGmt(LocalDate.now());
+        order.setUpdateDateTimeGmt(LocalDate.now());
 
         return orderRepository.save(order);
     }
 
-    public List<Order> getAllActiveOrders() {
-        return orderRepository.findByOrderState(OrderState.ACTIVE.name());
+    public Order updateOrder(Order order) {
+        Order.OrderEntryPK orderEntryPK = new Order.OrderEntryPK();
+        orderEntryPK.setOrderId(order.getOrderId());
+        orderEntryPK.setPatientId(order.getPatientId());
+
+        Optional<Order> foundOrder = Optional.ofNullable(orderRepository
+                .findById(orderEntryPK)
+                .orElseThrow(NullPointerException::new));
+
+        foundOrder.ifPresent(order_ -> {
+            if (order.getOrderComment() != null) {
+                order_.setOrderComment(order.getOrderComment());
+            }
+            if (order.getOrderState() != null) {
+                order_.setOrderState(order.getOrderState());
+            }
+            orderRepository.save(order_);
+        });
+        return foundOrder.orElseThrow(NullPointerException::new);
+    }
+
+    public Order declineOrder(Order order) {
+        Order.OrderEntryPK orderEntryPK = new Order.OrderEntryPK();
+        orderEntryPK.setOrderId(order.getOrderId());
+        orderEntryPK.setPatientId(order.getPatientId());
+        Optional<Order> foundOrder = orderRepository.findById(orderEntryPK);
+
+        foundOrder.ifPresent(order_ -> {
+            order_.setOrderState(OrderState.DECLINED.name());
+            orderRepository.save(order_);
+        });
+        return foundOrder.orElseThrow(NullPointerException::new);
+    }
+
+    public List<Order> getAllOrdersByState(String orderState) {
+        try {
+            return orderRepository.findByOrderState(OrderState.valueOf(orderState).name());
+        }catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

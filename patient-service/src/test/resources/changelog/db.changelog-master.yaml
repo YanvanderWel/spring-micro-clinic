@@ -1,0 +1,5 @@
+databaseChangeLog:
+#  - includeAll:
+#      path: classpath*:db/changelog/changeset/
+  - include:
+      file: db/changelog/changeset/create-patients-table.yaml

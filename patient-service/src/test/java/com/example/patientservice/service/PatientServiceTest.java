@@ -1,12 +1,11 @@
 package com.example.patientservice.service;
 
-import com.example.patientservice.mapper.PatientMapper;
+import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
 import com.example.patientservice.data.PatientState;
-import com.example.patientservice.dto.PatientRequest;
-import com.example.patientservice.persistence.OrderConsumer;
-import com.example.patientservice.persistence.Patient;
-import com.example.patientservice.persistence.PatientRepository;
+import com.example.patientservice.model.Patient;
+import com.example.patientservice.repository.PatientRepository;
+import com.github.javafaker.Faker;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,15 +13,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,17 +32,19 @@ class PatientServiceTest {
 
     private PatientService patientService;
 
+    private final Faker faker = new Faker(new Locale("en-GB"));
+
     @BeforeEach
     void initUseCase() {
         patientService = new PatientService(patientRepository, orderConsumer);
     }
 
     @Test
-    void givenPatient_whenSave_PatientHasFirstName() {
-        Patient patient = new Patient(
-                "1", "Yan",
-                "Levchenko", PatientState.ACTIVE
-        );
+    void givenPatient_whenSave_thenPatientHasFirstName() {
+
+        Patient patient = Patient.builder()
+                .firstName(faker.name().firstName())
+                .build();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
 
@@ -56,22 +54,61 @@ class PatientServiceTest {
     }
 
     @Test
-    void givenPatientAndOrderList_whenMapThem_thenFirstPatientHasOnlyOneOrder() {
+    void givenPatient_whenUpdate_thenPatientHasAnotherFirstName() {
+        String firstName = faker.name().firstName();
+
+        Patient patient = Patient.builder()
+                .firstName(firstName)
+                .build();
+        String updatedFirstName = firstName + "1";
+
+        Patient patient1 = Patient.builder()
+                .patientId(patient.getPatientId())
+                .firstName(updatedFirstName)
+                .build();
+
+        when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
+        when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
+
+        Patient updatedPatient = patientService.updatePatient(patient1);
+
+        assertThat(updatedPatient.getFirstName()).isEqualTo(updatedFirstName);
+    }
+
+    @Test
+    void givenPatient_whenDeactivate_thenPatientHasInactiveState() {
+        String firstName = faker.name().firstName();
+
+        Patient patient = Patient.builder()
+                .firstName(firstName)
+                .build();
+
+        when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
+        when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
+
+        Patient deactivatedPatient = patientService.deactivatePatient(patient);
+
+        assertThat(deactivatedPatient.getPatientState()).isEqualTo(PatientState.INACTIVE.name());
+    }
+
+    @Test
+    void givenPatientAndOrderLists_whenMapThem_thenFirstPatientHasOnlyOneOrder() {
+        Patient patient = Patient.builder()
+                .firstName(faker.name().firstName())
+                .lastName(faker.name().lastName())
+                .patientState(PatientState.ACTIVE.name())
+                .build();
+
         List<Order> activeOrders = new ArrayList<>();
-        activeOrders.add(
-                new Order(
-                        "1", "1", LocalDate.now(),
-                        LocalDate.now(), "test comment", "ACTIVE"
-                )
-        );
+        Order order = Order.builder()
+                .patientId(patient.getPatientId())
+                .orderState("ACTIVE")
+                .build();
+
+        activeOrders.add(order);
 
         List<Patient> patients = new ArrayList<>();
-        patients.add(
-                new Patient(
-                        "1", "Yan", "Levchenko",
-                        LocalDate.now(), LocalDate.now(), PatientState.ACTIVE
-                )
-        );
+        patients.add(patient);
 
         when(orderConsumer.getAllActiveOrders()).thenReturn(activeOrders);
 
@@ -82,6 +119,5 @@ class PatientServiceTest {
         List<Order> orders = entry.getValue();
 
         assertThat(orders.size()).isEqualTo(1);
-
     }
 }

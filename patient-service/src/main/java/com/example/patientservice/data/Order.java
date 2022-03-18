@@ -14,15 +14,15 @@ import java.time.LocalDate;
 @Data
 public class Order {
 
-    private String patient_id;
+    private String patientId;
 
-    private String order_id;
+    private String orderId;
 
-    private LocalDate create_date_time_gmt;
+    private LocalDate createDateTimeGmt;
 
-    private LocalDate update_date_time_gmt;
+    private LocalDate updateDateTimeGmt;
 
-    private String order_comment;
+    private String orderComment;
 
     private String orderState;
 

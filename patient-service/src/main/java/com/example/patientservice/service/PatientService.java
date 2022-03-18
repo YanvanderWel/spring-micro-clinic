@@ -1,63 +1,68 @@
 package com.example.patientservice.service;
 
-import com.example.patientservice.dto.PatientRequest;
+import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
-import com.example.patientservice.persistence.OrderConsumer;
-import com.example.patientservice.persistence.Patient;
-import com.example.patientservice.persistence.PatientRepository;
+import com.example.patientservice.data.PatientState;
+import com.example.patientservice.model.Patient;
+import com.example.patientservice.repository.PatientRepository;
+import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.function.IntPredicate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
+@RequiredArgsConstructor
 public class PatientService {
 
     private final PatientRepository patientRepository;
-
     private final OrderConsumer orderConsumer;
 
-    @Autowired
-    public PatientService(PatientRepository patientRepository, OrderConsumer orderConsumer) {
-        this.patientRepository = patientRepository;
-        this.orderConsumer = orderConsumer;
-    }
-
-    @Transactional
     public Patient createPatient(Patient patient) {
-        patient.setPatientId(UUID.randomUUID().toString());
+        patient.setCreateDateTimeGmt(LocalDate.now());
+        patient.setUpdateDateTimeGmt(LocalDate.now());
 
         return patientRepository.save(patient);
     }
 
-    @Transactional
-    public void updatePatient(PatientRequest request) {
-        Optional<Patient> patient = patientRepository.findById(request.getPatientId());
+    public Patient updatePatient(Patient patient) {
+        Optional<Patient> foundPatient = Optional.ofNullable(patientRepository
+                .findById(patient.getPatientId())
+                .orElseThrow(NullPointerException::new));
 
-        patient.ifPresent(patient_ -> {
-            if (request.getPatientState() != null) {
-                patient_.setPatientState(request.getPatientState());
+        foundPatient.ifPresent(patient_ -> {
+            if (patient.getPatientState() != null) {
+                patient_.setPatientState(patient.getPatientState());
             }
-            if (request.getFirstName() != null) {
-                patient_.setFirstName(request.getFirstName());
+            if (patient.getFirstName() != null) {
+                patient_.setFirstName(patient.getFirstName());
             }
-            if (request.getLastName() != null) {
-                patient_.setLastName(request.getLastName());
+            if (patient.getLastName() != null) {
+                patient_.setLastName(patient.getLastName());
             }
+            patientRepository.save(patient_);
         });
-
+        return foundPatient.orElseThrow(NullPointerException::new);
     }
 
-    @Transactional
+    public Patient deactivatePatient(Patient patient) {
+        Optional<Patient> foundPatient = patientRepository.findById(patient.getPatientId());
+
+        foundPatient.ifPresent(patient_ -> {
+            patient_.setPatientState(PatientState.INACTIVE.name());
+            patientRepository.save(patient_);
+        });
+        return foundPatient.orElseThrow(NullPointerException::new);
+    }
+
     public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders() {
         Map<String, List<Order>> activeOrders = orderConsumer.getAllActiveOrders().stream()
-                .collect(Collectors.groupingBy(Order::getPatient_id));
+                .collect(Collectors.groupingBy(Order::getPatientId));
 
         Map<JSONObject, List<Order>> patientsWithTheirOrders = new HashMap<>();
         for (Patient patient : patientRepository.findAll()) {
