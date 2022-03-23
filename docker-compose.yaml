@@ -20,6 +20,7 @@ services:
               gcloud spanner instances create $${INSTANCE_NAME} --config=emulator-config --description=Emulator --nodes=1
               gcloud spanner databases create patients --instance=$${INSTANCE_NAME}
               gcloud spanner databases create orders --instance=$${INSTANCE_NAME}'
+
   spanner-cli:
     image: sjdaws/spanner-cli:latest
     environment:
@@ -27,3 +28,49 @@ services:
     depends_on:
       - "gcloud-spanner-init"
     command: [ 'sh', '-c', 'echo spanner client.... && tail -f /dev/null' ]
+
+  eureka-server:
+    image: eureka-server:v1
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    depends_on:
+      - "spanner"
+
+  config-server:
+    image: config-server:v1
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    depends_on:
+      - "eureka-server"
+
+  api-gateway:
+    image: api-gateway:v1
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    depends_on:
+      - "eureka-server"
+
+  patient-service:
+    image: patient-service:v1
+    restart: unless-stopped
+    environment:
+      SPANNER_EMULATOR_HOST: "spanner:9010"
+    ports:
+      - "8083:8083"
+    depends_on:
+      - "eureka-server"
+      - "config-server"
+
+  order-service:
+    image: order-service:v1
+    restart: unless-stopped
+    environment:
+      SPANNER_EMULATOR_HOST: "spanner:9010"
+    ports:
+      - "8084:8084"
+    depends_on:
+      - "eureka-server"
+      - "config-server"

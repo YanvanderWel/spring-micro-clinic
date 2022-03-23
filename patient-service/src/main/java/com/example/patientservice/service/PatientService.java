@@ -2,19 +2,22 @@ package com.example.patientservice.service;
 
 import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
-import com.example.patientservice.data.PatientState;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.example.patientservice.Utils.getTimestampNow;
 
 @Service
 @RequiredArgsConstructor
@@ -24,51 +27,65 @@ public class PatientService {
     private final OrderConsumer orderConsumer;
 
     public Patient createPatient(Patient patient) {
-        patient.setCreateDateTimeGmt(LocalDate.now());
-        patient.setUpdateDateTimeGmt(LocalDate.now());
+        Timestamp now = getTimestampNow();
+        patient.setCreateDateTimeGmt(now);
+        patient.setUpdateDateTimeGmt(now);
 
         return patientRepository.save(patient);
     }
 
-    public Patient updatePatient(Patient patient) {
-        Optional<Patient> foundPatient = Optional.ofNullable(patientRepository
-                .findById(patient.getPatientId())
-                .orElseThrow(NullPointerException::new));
+    public Patient updatePatient(String id, Patient patient) {
+        Patient foundPatient = patientRepository
+                .findById(id)
+                .orElseThrow(() -> {
+                    throw new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Patient for updating not found");
+                });
 
-        foundPatient.ifPresent(patient_ -> {
-            if (patient.getPatientState() != null) {
-                patient_.setPatientState(patient.getPatientState());
-            }
-            if (patient.getFirstName() != null) {
-                patient_.setFirstName(patient.getFirstName());
-            }
-            if (patient.getLastName() != null) {
-                patient_.setLastName(patient.getLastName());
-            }
-            patientRepository.save(patient_);
-        });
-        return foundPatient.orElseThrow(NullPointerException::new);
+        updatePatient(patient, foundPatient);
+
+        return patientRepository.save(foundPatient);
     }
 
-    public Patient deactivatePatient(Patient patient) {
-        Optional<Patient> foundPatient = patientRepository.findById(patient.getPatientId());
+    private void updatePatient(Patient patientFrom, Patient patientTo) {
+        if (patientFrom.getPatientState() != null) {
+            patientTo.setPatientState(patientFrom.getPatientState());
+        }
+        if (patientFrom.getFirstName() != null) {
+            patientTo.setFirstName(patientFrom.getFirstName());
+        }
+        if (patientFrom.getLastName() != null) {
+            patientTo.setLastName(patientFrom.getLastName());
+        }
 
-        foundPatient.ifPresent(patient_ -> {
-            patient_.setPatientState(PatientState.INACTIVE.name());
-            patientRepository.save(patient_);
-        });
-        return foundPatient.orElseThrow(NullPointerException::new);
+        patientTo.setUpdateDateTimeGmt(getTimestampNow());
+    }
+
+    public void deactivatePatient(String id) {
+        Patient foundPatient = patientRepository
+                .findById(id)
+                .orElseThrow(() -> {
+                            throw new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND, "Patient for deleting not found");
+                        }
+                );
+
+        patientRepository.deleteById(foundPatient.getPatientId());
     }
 
     public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders() {
-        Map<String, List<Order>> activeOrders = orderConsumer.getAllActiveOrders().stream()
+        Map<String, List<Order>> activeOrders =
+                orderConsumer.getAllActiveOrders()
+                .stream()
                 .collect(Collectors.groupingBy(Order::getPatientId));
 
         Map<JSONObject, List<Order>> patientsWithTheirOrders = new HashMap<>();
         for (Patient patient : patientRepository.findAll()) {
             if (activeOrders.get(patient.getPatientId()) != null) {
-                patientsWithTheirOrders.put(new JSONObject(patient),
-                        activeOrders.get(patient.getPatientId()));
+                patientsWithTheirOrders.put(
+                        new JSONObject(patient),
+                        activeOrders.get(patient.getPatientId())
+                );
             }
         }
 

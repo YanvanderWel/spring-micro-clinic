@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Data
@@ -40,10 +41,10 @@ public class Patient implements Serializable {
     private String lastName;
 
     @Column(name = "create_date_time_gmt")
-    private LocalDate createDateTimeGmt;
+    private Timestamp createDateTimeGmt;
 
     @Column(name = "update_date_time_gmt")
-    private LocalDate updateDateTimeGmt;
+    private Timestamp updateDateTimeGmt;
 
     @Column(name = "patient_state")
     private String patientState;

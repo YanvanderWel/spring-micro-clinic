@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Data
@@ -16,7 +17,7 @@ public class PatientRequest {
     private String patientId;
     private String firstName;
     private String lastName;
-    private LocalDate createDateTimeGmt;
-    private LocalDate updateDateTimeGmt;
+    private Timestamp createDateTimeGmt;
+    private Timestamp updateDateTimeGmt;
     private PatientState patientState;
 }

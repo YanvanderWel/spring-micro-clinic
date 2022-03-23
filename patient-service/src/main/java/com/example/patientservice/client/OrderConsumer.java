@@ -9,6 +9,6 @@ import java.util.List;
 @FeignClient(name = "order-service")
 public interface OrderConsumer {
 
-    @GetMapping("/order/all?orderState=ACTIVE")
+    @GetMapping("/orders/all?orderState=ACTIVE")
     List<Order> getAllActiveOrders();
 }

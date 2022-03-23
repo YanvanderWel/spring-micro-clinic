@@ -8,6 +8,8 @@ import com.example.patientservice.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/patient")
+@RequestMapping("/patients")
 @RequiredArgsConstructor
 public class PatientController {
 
@@ -24,26 +26,33 @@ public class PatientController {
 
 
     @PostMapping("/create")
-    public Patient createPatient(@RequestBody PatientRequest patientRequest) {
+    public ResponseEntity<Patient> createPatient(@RequestBody PatientRequest patientRequest) {
         log.info("New patient registration {}", patientRequest);
-        return patientService.createPatient(patientMapper.patientRequestToPatient(patientRequest));
+        return new ResponseEntity<>(
+                patientService.createPatient(patientMapper.patientRequestToPatient(patientRequest)),
+                HttpStatus.CREATED);
     }
 
-    @PutMapping("/update")
-    public void updatePatient(@RequestBody PatientRequest patientRequest) {
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Patient> updatePatient(@PathVariable("id") String id,
+                                                 @RequestBody PatientRequest patientRequest) {
         log.info("Patient updated {}", patientRequest);
-        patientService.updatePatient(patientMapper.patientRequestToPatient(patientRequest));
+        return new ResponseEntity<>(
+                patientService.updatePatient(id, patientMapper.patientRequestToPatient(patientRequest)),
+                HttpStatus.OK);
     }
 
-    @PutMapping ("/deactivate")
-    public void deactivatePatient(@RequestBody PatientRequest patientRequest) {
-        log.info("Patient deactivated {}", patientRequest);
-        patientService.deactivatePatient(patientMapper.patientRequestToPatient(patientRequest));
+    @DeleteMapping("/deactivate/{id}")
+    public ResponseEntity<HttpStatus> deactivatePatient(@PathVariable("id") String id) {
+        log.info("Patient deactivated with id {}", id);
+        patientService.deactivatePatient(id);
+
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/all")
-    public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders() {
-        log.info("Get patient with their orders");
-        return patientService.getPatientListWithTheirActiveOrders();
+    public ResponseEntity<Map<JSONObject, List<Order>>> getPatientListWithTheirActiveOrders() {
+        log.info("Get patients with their orders");
+        return new ResponseEntity<>(patientService.getPatientListWithTheirActiveOrders(), HttpStatus.OK);
     }
 }

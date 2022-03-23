@@ -29,7 +29,7 @@ public class AppConfig {
         LocalContainerEntityManagerFactoryBean em
                 = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dbDatasource());
-        em.setPackagesToScan("com.example.patientservice.model");
+        em.setPackagesToScan("com.example.orderservice.model");
 
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);

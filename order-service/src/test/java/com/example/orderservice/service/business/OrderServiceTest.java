@@ -1,8 +1,9 @@
-package com.example.orderservice.service;
+package com.example.orderservice.service.business;
 
 import com.example.orderservice.data.OrderState;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.repository.OrderRepository;
+import com.example.orderservice.service.OrderService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,19 +14,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static com.example.orderservice.service.BuildObjectMethods.order;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
-
-    private final Faker faker = new Faker(new Locale("en-GB"));
 
     @Mock
     OrderRepository orderRepository;
@@ -39,49 +37,40 @@ class OrderServiceTest {
 
     @Test
     void givenOrder_whenSave_thenOrderHasOrderComment() {
-        Order order = Order.builder()
-                .orderComment(faker.app().author())
-                .build();
+        Order order = order();
 
         when(orderRepository.save(any(Order.class))).then(returnsFirstArg());
 
-        Order order1 = orderService.createOrder(order);
+        Order updatedOrder = orderService.createOrder(order);
 
-        assertThat(order1.getOrderComment()).isNotNull();
+        assertThat(updatedOrder.getOrderComment()).isNotNull();
+        verify(orderRepository).save(eq(order));
     }
 
     @Test
     void givenOrder_whenUpdate_thenOrderHasAnotherComment() {
 
-        Order order = Order.builder()
-                .orderComment(faker.name().firstName())
-                .build();
-
-        String updatedOrderComment = faker.name().lastName();
-        Order order1 = Order.builder()
-                .orderComment(updatedOrderComment)
-                .build();
+        Order order = order();
+        Order order1 = order();
 
         when(orderRepository.save(any(Order.class))).then(returnsFirstArg());
         when(orderRepository.findById(any())).thenReturn(Optional.of(order));
 
-        Order updatedOrder = orderService.updateOrder(order1);
+        orderService.updateOrder(order.getId(), order1);
 
-        assertThat(updatedOrder.getOrderComment()).isEqualTo(updatedOrderComment);
+        assertThat(order.getOrderComment()).isEqualTo(order1.getOrderComment());
     }
 
     @Test
     void givenOrder_whenDecline_thenOrderHasDeclineState() {
 
-        Order order = Order.builder()
-                .build();
+        Order order = order();
 
-        when(orderRepository.save(any(Order.class))).then(returnsFirstArg());
         when(orderRepository.findById(any())).thenReturn(Optional.of(order));
 
-        Order updatedOrder = orderService.declineOrder(order);
+        orderService.declineOrder(order.getId());
 
-        assertThat(updatedOrder.getOrderState()).isEqualTo(OrderState.DECLINED.name());
+        verify(orderRepository).deleteById(eq(order.getId()));
     }
 
     @Test

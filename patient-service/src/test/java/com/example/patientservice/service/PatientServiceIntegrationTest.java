@@ -5,6 +5,7 @@ import com.example.patientservice.repository.PatientRepository;
 import com.google.cloud.NoCredentials;
 import com.google.cloud.spanner.*;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -12,8 +13,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.SpannerEmulatorContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,6 +27,12 @@ import org.testcontainers.utility.DockerImageName;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.example.patientservice.Utils.asJsonString;
+import static com.example.patientservice.service.BuildObjectMethods.patient;
+import static com.example.patientservice.service.BuildObjectMethods.patientRequest;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -29,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest(properties = {"spring.cloud.config.enabled=false", "spring.cloud.discovery.enabled=false"},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Transactional(readOnly = true)
 @ContextConfiguration(
         initializers = {PatientServiceIntegrationTest.Initializer.class}
 )
@@ -41,6 +51,18 @@ public class PatientServiceIntegrationTest {
 
     @Autowired
     private PatientRepository patientRepository;
+
+    @Autowired
+    private WebApplicationContext applicationContext;
+
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    void setup() {
+        this.mockMvc = MockMvcBuilders
+                .webAppContextSetup(applicationContext)
+                .build();
+    }
 
     @Container
     public static final SpannerEmulatorContainer emulator = new SpannerEmulatorContainer(
@@ -85,13 +107,38 @@ public class PatientServiceIntegrationTest {
     }
 
     @Test
-    public void patientsCountShouldBeCorrect() {
-        patientRepository.saveAndFlush(new Patient());
-
-        long count = patientRepository.count();
-        assertEquals(1, count);
+    public void createPatientReturnsHttpStatusCreated() throws Exception {
+        this.mockMvc.perform(
+                        post("/patients/create")
+                                .content(asJsonString(new Patient()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
     }
 
+    @Test
+    public void updatePatientReturnsHttpStatusOk() throws Exception {
+        Patient patient = patient();
+        Patient savedPatient = patientRepository.save(patient);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/patients/update/{id}", savedPatient.getPatientId())
+                        .content(asJsonString(patientRequest()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void deletePatientReturnsHttpStatusAccept() throws Exception {
+        Patient patient = patient();
+        Patient savedPatient = patientRepository.save(patient);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(
+                        "/patients/deactivate/{id}", savedPatient.getPatientId()))
+                .andExpect(status().isAccepted());
+    }
 
     private static void createDatabase(Spanner spanner) throws InterruptedException, ExecutionException {
         DatabaseAdminClient dbAdminClient = spanner.getDatabaseAdminClient();

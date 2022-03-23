@@ -20,10 +20,10 @@ databaseChangeLog:
                   type: STRING(MAX)
               - column:
                   name: create_date_time_gmt
-                  type: Date
+                  type: TIMESTAMP
               - column:
                   name: update_date_time_gmt
-                  type: Date
+                  type: TIMESTAMP
               - column:
                   name: patient_state
                   type: STRING(MAX)

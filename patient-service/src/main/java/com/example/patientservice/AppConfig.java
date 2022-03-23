@@ -27,7 +27,7 @@ public class AppConfig {
     @Autowired
     private Environment env;
 
-    @Bean
+
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean em
                 = new LocalContainerEntityManagerFactoryBean();

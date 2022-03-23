@@ -1,10 +1,10 @@
-package com.example.patientservice.service;
+package com.example.patientservice.service.business;
 
 import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
-import com.example.patientservice.data.PatientState;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.repository.PatientRepository;
+import com.example.patientservice.service.PatientService;
 import com.github.javafaker.Faker;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,11 +15,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
+import static com.example.patientservice.service.BuildObjectMethods.patient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PatientServiceTest {
@@ -42,62 +43,43 @@ class PatientServiceTest {
     @Test
     void givenPatient_whenSave_thenPatientHasFirstName() {
 
-        Patient patient = Patient.builder()
-                .firstName(faker.name().firstName())
-                .build();
+        Patient patient = patient();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
 
         Patient savedPatient = patientService.createPatient(patient);
 
         assertThat(savedPatient.getFirstName()).isNotNull();
+        verify(patientRepository).save(eq(savedPatient));
     }
 
     @Test
     void givenPatient_whenUpdate_thenPatientHasAnotherFirstName() {
-        String firstName = faker.name().firstName();
-
-        Patient patient = Patient.builder()
-                .firstName(firstName)
-                .build();
-        String updatedFirstName = firstName + "1";
-
-        Patient patient1 = Patient.builder()
-                .patientId(patient.getPatientId())
-                .firstName(updatedFirstName)
-                .build();
+        Patient patient = patient();
+        Patient patient1 = patient();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
         when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
 
-        Patient updatedPatient = patientService.updatePatient(patient1);
+        patientService.updatePatient(patient.getPatientId(), patient1);
 
-        assertThat(updatedPatient.getFirstName()).isEqualTo(updatedFirstName);
+        assertThat(patient.getFirstName()).isEqualTo(patient1.getFirstName());
     }
 
     @Test
     void givenPatient_whenDeactivate_thenPatientHasInactiveState() {
-        String firstName = faker.name().firstName();
+        Patient patient = patient();
 
-        Patient patient = Patient.builder()
-                .firstName(firstName)
-                .build();
-
-        when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
         when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
 
-        Patient deactivatedPatient = patientService.deactivatePatient(patient);
+        patientService.deactivatePatient(patient.getPatientId());
 
-        assertThat(deactivatedPatient.getPatientState()).isEqualTo(PatientState.INACTIVE.name());
+        verify(patientRepository).deleteById(eq(patient.getPatientId()));
     }
 
     @Test
     void givenPatientAndOrderLists_whenMapThem_thenFirstPatientHasOnlyOneOrder() {
-        Patient patient = Patient.builder()
-                .firstName(faker.name().firstName())
-                .lastName(faker.name().lastName())
-                .patientState(PatientState.ACTIVE.name())
-                .build();
+        Patient patient = patient();
 
         List<Order> activeOrders = new ArrayList<>();
         Order order = Order.builder()
