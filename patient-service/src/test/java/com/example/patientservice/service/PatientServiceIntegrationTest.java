@@ -28,12 +28,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.example.patientservice.Utils.asJsonString;
-import static com.example.patientservice.service.BuildObjectMethods.patient;
-import static com.example.patientservice.service.BuildObjectMethods.patientRequest;
-import static org.mockito.ArgumentMatchers.any;
+import static com.example.patientservice.service.TestEntityProvider.patient;
+import static com.example.patientservice.service.TestEntityProvider.patientRequest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @Testcontainers

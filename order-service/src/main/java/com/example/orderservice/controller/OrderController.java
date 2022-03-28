@@ -4,50 +4,47 @@ import com.example.orderservice.dto.OrderRequest;
 import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.service.OrderService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/orders")
 public class OrderController {
 
     private final OrderService orderService;
-    private final OrderMapper orderMapper;
-
-    public OrderController(OrderService orderService, OrderMapper orderMapper) {
-        this.orderService = orderService;
-        this.orderMapper = orderMapper;
-    }
 
     @PostMapping("/create")
     public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest) {
         log.info("New order registration {}", orderRequest);
         return new ResponseEntity<>(
-                orderService.createOrder(orderMapper.orderRequestToOrder(orderRequest)),
+                orderService.createOrder(orderRequest),
                 HttpStatus.CREATED);
     }
 
-    @PutMapping("/update/{patientId}/{orderId}")
-    public ResponseEntity<Order> updateOrder(Order.OrderEntryPK id,
+    @PutMapping("/update/{orderId}")
+    public ResponseEntity<Order> updateOrder(@PathVariable String orderId,
                                              @RequestBody OrderRequest orderRequest) {
         log.info("Order updated {}", orderRequest);
         return new ResponseEntity<>(
-                orderService.updateOrder(id, orderMapper.orderRequestToOrder(orderRequest)),
+                orderService.updateOrder(orderId, orderRequest),
                 HttpStatus.OK);
     }
 
-    @DeleteMapping("/decline/{patientId}/{orderId}")
-    public ResponseEntity<HttpStatus> declineOrder(Order.OrderEntryPK id) {
-        log.info("Order declined with id {}", id);
-        orderService.declineOrder(id);
+    @DeleteMapping("/decline/{orderId}")
+    public ResponseEntity<HttpStatus> declineOrder(@PathVariable String orderId) {
+        log.info("Order declined with id {}", orderId);
+        orderService.declineOrder(orderId);
 
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/all")
@@ -57,5 +54,4 @@ public class OrderController {
                 orderService.getAllOrdersByState(orderState.orElse("NOT PROVIDED")),
                 HttpStatus.OK);
     }
-
 }

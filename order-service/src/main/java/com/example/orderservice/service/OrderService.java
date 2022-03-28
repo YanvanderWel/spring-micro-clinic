@@ -1,6 +1,8 @@
 package com.example.orderservice.service;
 
 import com.example.orderservice.data.OrderState;
+import com.example.orderservice.dto.OrderRequest;
+import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.orderservice.Utils.getTimestampNow;
@@ -19,8 +20,11 @@ import static com.example.orderservice.Utils.getTimestampNow;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderMapper orderMapper;
 
-    public Order createOrder(Order order) {
+
+    public Order createOrder(OrderRequest orderRequest) {
+        Order order = orderMapper.orderRequestToOrder(orderRequest);
         Timestamp now = getTimestampNow();
         order.setCreateDateTimeGmt(now);
         order.setUpdateDateTimeGmt(now);
@@ -28,9 +32,10 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public Order updateOrder(Order.OrderEntryPK id, Order order) {
+    public Order updateOrder(String orderId, OrderRequest orderRequest) {
+        Order order = orderMapper.orderRequestToOrder(orderRequest);
         Order foundOrder = orderRepository
-                .findById(id)
+                .findByOrderId(orderId)
                 .orElseThrow(() -> {
                     throw new ResponseStatusException(
                             HttpStatus.NOT_FOUND, "Order for updating not found");
@@ -38,8 +43,7 @@ public class OrderService {
 
         updateOrder(order, foundOrder);
 
-        orderRepository.save(foundOrder);
-        return foundOrder;
+        return orderRepository.save(foundOrder);
     }
 
     private void updateOrder(Order order, Order foundOrder) {
@@ -52,9 +56,9 @@ public class OrderService {
         foundOrder.setUpdateDateTimeGmt(getTimestampNow());
     }
 
-    public void declineOrder(Order.OrderEntryPK id) {
+    public void declineOrder(String orderId) {
         Order foundOrder = orderRepository
-                .findById(id)
+                .findByOrderId(orderId)
                 .orElseThrow(() -> {
                     throw new ResponseStatusException(
                             HttpStatus.NOT_FOUND, "Order for declining not found");

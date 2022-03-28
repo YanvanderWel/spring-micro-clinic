@@ -22,15 +22,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.util.Locale;
 
 import static com.example.orderservice.Utils.asJsonString;
-import static com.example.orderservice.service.BuildObjectMethods.order;
-import static com.example.orderservice.service.BuildObjectMethods.orderRequest;
+import static com.example.orderservice.service.TestEntityProvider.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(OrderController.class)
-@TestPropertySource(properties = "spring.cloud.config.enabled=false")
 @TestPropertySources({
         @TestPropertySource(properties = "spring.cloud.config.enabled=false"),
         @TestPropertySource(properties = "spring.cloud.discovery.enabled=false")
@@ -48,8 +46,6 @@ public class OrderRestControllerTest {
 
     @MockBean
     private OrderMapper orderMapper;
-
-    private final Faker faker = new Faker(new Locale("en-GB"));
 
     @Test
     public void createOrderAPI() throws Exception {

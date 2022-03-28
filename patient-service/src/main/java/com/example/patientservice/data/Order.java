@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @AllArgsConstructor
@@ -18,9 +19,9 @@ public class Order {
 
     private String orderId;
 
-    private LocalDate createDateTimeGmt;
+    private Timestamp createDateTimeGmt;
 
-    private LocalDate updateDateTimeGmt;
+    private Timestamp updateDateTimeGmt;
 
     private String orderComment;
 

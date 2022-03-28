@@ -2,6 +2,8 @@ package com.example.patientservice.service;
 
 import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
+import com.example.patientservice.dto.PatientRequest;
+import com.example.patientservice.mapper.PatientMapper;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +26,11 @@ import static com.example.patientservice.Utils.getTimestampNow;
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final PatientMapper patientMapper;
     private final OrderConsumer orderConsumer;
 
-    public Patient createPatient(Patient patient) {
+    public Patient createPatient(PatientRequest patientRequest) {
+        Patient patient = patientMapper.patientRequestToPatient(patientRequest);
         Timestamp now = getTimestampNow();
         patient.setCreateDateTimeGmt(now);
         patient.setUpdateDateTimeGmt(now);
@@ -34,9 +38,10 @@ public class PatientService {
         return patientRepository.save(patient);
     }
 
-    public Patient updatePatient(String id, Patient patient) {
+    public Patient updatePatient(String patientId, PatientRequest patientRequest) {
+        Patient patient = patientMapper.patientRequestToPatient(patientRequest);
         Patient foundPatient = patientRepository
-                .findById(id)
+                .findById(patientId)
                 .orElseThrow(() -> {
                     throw new ResponseStatusException(
                             HttpStatus.NOT_FOUND, "Patient for updating not found");
@@ -61,9 +66,9 @@ public class PatientService {
         patientTo.setUpdateDateTimeGmt(getTimestampNow());
     }
 
-    public void deactivatePatient(String id) {
+    public void deactivatePatient(String patientId) {
         Patient foundPatient = patientRepository
-                .findById(id)
+                .findById(patientId)
                 .orElseThrow(() -> {
                             throw new ResponseStatusException(
                                     HttpStatus.NOT_FOUND, "Patient for deleting not found");
@@ -75,7 +80,7 @@ public class PatientService {
 
     public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders() {
         Map<String, List<Order>> activeOrders =
-                orderConsumer.getAllActiveOrders()
+                orderConsumer.getAllOrdersByState("ACTIVE")
                 .stream()
                 .collect(Collectors.groupingBy(Order::getPatientId));
 

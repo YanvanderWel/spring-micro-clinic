@@ -22,8 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.util.Locale;
 
 import static com.example.patientservice.Utils.asJsonString;
-import static com.example.patientservice.service.BuildObjectMethods.patient;
-import static com.example.patientservice.service.BuildObjectMethods.patientRequest;
+import static com.example.patientservice.service.TestEntityProvider.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,8 +47,6 @@ public class PatientRestControllerTest {
 
     @MockBean
     private PatientMapper patientMapper;
-
-    private final Faker faker = new Faker(new Locale("en-GB"));
 
     @Test
     public void createPatientAPI() throws Exception {

@@ -2,7 +2,6 @@ package com.example.patientservice.controller;
 
 import com.example.patientservice.data.Order;
 import com.example.patientservice.dto.PatientRequest;
-import com.example.patientservice.mapper.PatientMapper;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -21,33 +20,31 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PatientController {
 
-    private final PatientMapper patientMapper;
     private final PatientService patientService;
-
 
     @PostMapping("/create")
     public ResponseEntity<Patient> createPatient(@RequestBody PatientRequest patientRequest) {
         log.info("New patient registration {}", patientRequest);
         return new ResponseEntity<>(
-                patientService.createPatient(patientMapper.patientRequestToPatient(patientRequest)),
+                patientService.createPatient(patientRequest),
                 HttpStatus.CREATED);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Patient> updatePatient(@PathVariable("id") String id,
+    @PutMapping("/update/{patientId}")
+    public ResponseEntity<Patient> updatePatient(@PathVariable("patientId") String patientId,
                                                  @RequestBody PatientRequest patientRequest) {
         log.info("Patient updated {}", patientRequest);
         return new ResponseEntity<>(
-                patientService.updatePatient(id, patientMapper.patientRequestToPatient(patientRequest)),
+                patientService.updatePatient(patientId, patientRequest),
                 HttpStatus.OK);
     }
 
-    @DeleteMapping("/deactivate/{id}")
-    public ResponseEntity<HttpStatus> deactivatePatient(@PathVariable("id") String id) {
-        log.info("Patient deactivated with id {}", id);
-        patientService.deactivatePatient(id);
+    @DeleteMapping("/deactivate/{patientId}")
+    public ResponseEntity<HttpStatus> deactivatePatient(@PathVariable("patientId") String patientId) {
+        log.info("Patient deactivated with patientId {}", patientId);
+        patientService.deactivatePatient(patientId);
 
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/all")

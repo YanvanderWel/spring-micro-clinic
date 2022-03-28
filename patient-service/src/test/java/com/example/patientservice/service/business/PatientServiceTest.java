@@ -2,6 +2,9 @@ package com.example.patientservice.service.business;
 
 import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
+import com.example.patientservice.dto.PatientRequest;
+import com.example.patientservice.mapper.PatientMapper;
+import com.example.patientservice.mapper.PatientMapperImpl;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.repository.PatientRepository;
 import com.example.patientservice.service.PatientService;
@@ -10,12 +13,15 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
-import static com.example.patientservice.service.BuildObjectMethods.patient;
+import static com.example.patientservice.service.TestEntityProvider.patient;
+import static com.example.patientservice.service.TestEntityProvider.patientRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,23 +37,24 @@ class PatientServiceTest {
     @Mock
     private OrderConsumer orderConsumer;
 
-    private PatientService patientService;
+    private final PatientMapper patientMapper = new PatientMapperImpl();
 
-    private final Faker faker = new Faker(new Locale("en-GB"));
+    @InjectMocks
+    private PatientService patientService;
 
     @BeforeEach
     void initUseCase() {
-        patientService = new PatientService(patientRepository, orderConsumer);
+        patientService = new PatientService(patientRepository, patientMapper, orderConsumer);
     }
 
     @Test
     void givenPatient_whenSave_thenPatientHasFirstName() {
 
-        Patient patient = patient();
+        PatientRequest patientRequest = patientRequest();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
 
-        Patient savedPatient = patientService.createPatient(patient);
+        Patient savedPatient = patientService.createPatient(patientRequest);
 
         assertThat(savedPatient.getFirstName()).isNotNull();
         verify(patientRepository).save(eq(savedPatient));
@@ -56,14 +63,14 @@ class PatientServiceTest {
     @Test
     void givenPatient_whenUpdate_thenPatientHasAnotherFirstName() {
         Patient patient = patient();
-        Patient patient1 = patient();
+        PatientRequest patientRequest = patientRequest();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
         when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
 
-        patientService.updatePatient(patient.getPatientId(), patient1);
+        patientService.updatePatient(patient.getPatientId(), patientRequest);
 
-        assertThat(patient.getFirstName()).isEqualTo(patient1.getFirstName());
+        assertThat(patient.getFirstName()).isEqualTo(patientRequest.getFirstName());
     }
 
     @Test
@@ -92,7 +99,7 @@ class PatientServiceTest {
         List<Patient> patients = new ArrayList<>();
         patients.add(patient);
 
-        when(orderConsumer.getAllActiveOrders()).thenReturn(activeOrders);
+        when(orderConsumer.getAllOrdersByState("ACTIVE")).thenReturn(activeOrders);
 
         when(patientRepository.findAll()).thenReturn(patients);
 
