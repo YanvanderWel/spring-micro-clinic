@@ -13,15 +13,13 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name = "patients")
-public class Patient implements Serializable {
+public class Patient extends AbstractTimestampEntity implements Serializable {
 
     @Id
     @GenericGenerator(
@@ -39,12 +37,6 @@ public class Patient implements Serializable {
     @JsonIgnore
     @Column(name = "last_name")
     private String lastName;
-
-    @Column(name = "create_date_time_gmt")
-    private Timestamp createDateTimeGmt;
-
-    @Column(name = "update_date_time_gmt")
-    private Timestamp updateDateTimeGmt;
 
     @Column(name = "patient_state")
     private String patientState;

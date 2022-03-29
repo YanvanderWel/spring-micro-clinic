@@ -6,18 +6,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
+import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class PatientRequest {
+    @NotNull(message = "Patient id cannot be null")
     private String patientId;
+
+    @NotNull(message = "First name cannot be null")
     private String firstName;
+
+    @NotNull(message = "Last name cannot be null")
     private String lastName;
-    private Timestamp createDateTimeGmt;
-    private Timestamp updateDateTimeGmt;
+
+    @NotNull(message = "Patient state cannot be null")
     private PatientState patientState;
 }

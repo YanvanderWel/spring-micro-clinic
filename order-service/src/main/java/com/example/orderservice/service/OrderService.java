@@ -25,9 +25,6 @@ public class OrderService {
 
     public Order createOrder(OrderRequest orderRequest) {
         Order order = orderMapper.orderRequestToOrder(orderRequest);
-        Timestamp now = getTimestampNow();
-        order.setCreateDateTimeGmt(now);
-        order.setUpdateDateTimeGmt(now);
 
         return orderRepository.save(order);
     }
@@ -53,7 +50,6 @@ public class OrderService {
         if (order.getOrderState() != null) {
             foundOrder.setOrderState(order.getOrderState());
         }
-        foundOrder.setUpdateDateTimeGmt(getTimestampNow());
     }
 
     public void declineOrder(String orderId) {

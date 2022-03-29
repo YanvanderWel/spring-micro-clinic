@@ -1,6 +1,7 @@
 package com.example.orderservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import java.sql.Timestamp;
@@ -13,11 +14,8 @@ public class Utils {
         return Timestamp.valueOf(LocalDateTime.now());
     }
 
+    @SneakyThrows
     public static String asJsonString(final Object obj) {
-        try {
-            return new ObjectMapper().writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return new ObjectMapper().writeValueAsString(obj);
     }
 }

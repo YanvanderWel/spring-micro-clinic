@@ -31,9 +31,6 @@ public class PatientService {
 
     public Patient createPatient(PatientRequest patientRequest) {
         Patient patient = patientMapper.patientRequestToPatient(patientRequest);
-        Timestamp now = getTimestampNow();
-        patient.setCreateDateTimeGmt(now);
-        patient.setUpdateDateTimeGmt(now);
 
         return patientRepository.save(patient);
     }
@@ -62,8 +59,6 @@ public class PatientService {
         if (patientFrom.getLastName() != null) {
             patientTo.setLastName(patientFrom.getLastName());
         }
-
-        patientTo.setUpdateDateTimeGmt(getTimestampNow());
     }
 
     public void deactivatePatient(String patientId) {

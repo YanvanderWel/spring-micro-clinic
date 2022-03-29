@@ -23,7 +23,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest) {
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         log.info("New order registration {}", orderRequest);
         return new ResponseEntity<>(
                 orderService.createOrder(orderRequest),
@@ -32,7 +32,7 @@ public class OrderController {
 
     @PutMapping("/update/{orderId}")
     public ResponseEntity<Order> updateOrder(@PathVariable String orderId,
-                                             @RequestBody OrderRequest orderRequest) {
+                                             @Valid @RequestBody OrderRequest orderRequest) {
         log.info("Order updated {}", orderRequest);
         return new ResponseEntity<>(
                 orderService.updateOrder(orderId, orderRequest),

@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
@@ -14,10 +17,16 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderRequest {
+    @NotNull(message = "Patient id cannot be null")
     private String patientId;
+
     private String orderId;
+
+    @NotNull
+    @Size(min = 10, max = 200, message
+            = "Comment must be between 10 and 200 characters")
     private String orderComment;
-    private Timestamp createDateTimeGmt;
-    private Timestamp updateDateTimeGmt;
+
+    @NotNull(message = "Order state cannot be null")
     private OrderState orderState;
 }

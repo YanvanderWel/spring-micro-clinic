@@ -20,7 +20,7 @@ import java.sql.Timestamp;
 @Builder
 @Data
 @IdClass(Order.OrderEntryPK.class)
-public class Order {
+public class Order extends AbstractTimestampEntity implements Serializable {
 
     @Id
     private String patientId;
@@ -32,10 +32,6 @@ public class Order {
     )
     @GeneratedValue(generator = "order_id_gen")
     private String orderId;
-
-    private Timestamp createDateTimeGmt;
-
-    private Timestamp updateDateTimeGmt;
 
     private String orderComment;
 

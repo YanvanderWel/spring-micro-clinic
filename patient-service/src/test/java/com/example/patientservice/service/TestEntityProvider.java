@@ -15,26 +15,20 @@ public class TestEntityProvider {
     public static final Faker faker = new Faker(new Locale("en-GB"));
 
     public static Patient patient() {
-        Timestamp timestampNow = getTimestampNow();
         return Patient.builder()
                 .patientId(faker.idNumber().valid())
                 .firstName(faker.name().firstName())
                 .lastName(faker.name().lastName())
                 .patientState(PatientState.ACTIVE.name())
-                .createDateTimeGmt(timestampNow)
-                .updateDateTimeGmt(timestampNow)
                 .build();
     }
 
     public static PatientRequest patientRequest() {
-        Timestamp timestampNow = getTimestampNow();
         return PatientRequest.builder()
                 .patientId(faker.idNumber().valid())
                 .firstName(faker.name().firstName())
                 .lastName(faker.name().lastName())
                 .patientState(PatientState.ACTIVE)
-                .createDateTimeGmt(timestampNow)
-                .updateDateTimeGmt(timestampNow)
                 .build();
     }
 }
