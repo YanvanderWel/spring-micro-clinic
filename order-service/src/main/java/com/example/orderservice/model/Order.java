@@ -49,4 +49,5 @@ public class Order extends AbstractTimestampEntity implements Serializable {
     public OrderEntryPK getId() {
         return new OrderEntryPK(patientId, orderId);
     }
+
 }

@@ -5,7 +5,6 @@ import com.example.patientservice.mapper.PatientMapper;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.repository.PatientRepository;
 import com.example.patientservice.service.PatientService;
-import com.github.javafaker.Faker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import java.util.Locale;
 
 import static com.example.patientservice.Utils.asJsonString;
 import static com.example.patientservice.service.TestEntityProvider.*;
@@ -50,11 +47,11 @@ public class PatientRestControllerTest {
 
     @Test
     public void createPatientAPI() throws Exception {
-        when(patientService.createPatient(any())).thenReturn(patient());
+        when(patientService.createPatient(any())).thenReturn(buildPatient());
 
         mvc.perform(MockMvcRequestBuilders
                         .post("/patients/create")
-                        .content(asJsonString(patientRequest()))
+                        .content(asJsonString(buildPatientRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -63,7 +60,7 @@ public class PatientRestControllerTest {
 
     @Test
     public void updatePatientAPI() throws Exception {
-        Patient patient = patient();
+        Patient patient = buildPatient();
         when(patientService.updatePatient(any(), any())).thenReturn(patient);
 
         mvc.perform(MockMvcRequestBuilders

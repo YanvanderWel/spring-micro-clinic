@@ -5,7 +5,6 @@ import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.repository.OrderRepository;
 import com.example.orderservice.service.OrderService;
-import com.github.javafaker.Faker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import java.util.Locale;
 
 import static com.example.orderservice.Utils.asJsonString;
 import static com.example.orderservice.service.TestEntityProvider.*;
@@ -49,11 +46,11 @@ public class OrderRestControllerTest {
 
     @Test
     public void createOrderAPI() throws Exception {
-        when(orderService.createOrder(any())).thenReturn(order());
+        when(orderService.createOrder(any())).thenReturn(buildOrder());
 
         mvc.perform(MockMvcRequestBuilders
                         .post("/orders/create")
-                        .content(asJsonString(orderRequest()))
+                        .content(asJsonString(buildOrderRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -62,11 +59,11 @@ public class OrderRestControllerTest {
 
     @Test
     public void updateOrderAPI() throws Exception {
-        Order order = order();
+        Order order = buildOrder();
         when(orderService.updateOrder(any(), any())).thenReturn(order);
 
         mvc.perform(MockMvcRequestBuilders
-                        .put("/orders/update/{patientId}/{orderId}",
+                        .put("/orders/update/{orderId}",
                                 order.getPatientId(), order.getOrderId())
                         .content(asJsonString(order))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -79,15 +76,14 @@ public class OrderRestControllerTest {
     @Test
     public void declineOrderAPI() throws Exception {
         mvc.perform(MockMvcRequestBuilders.delete(
-                        "/orders/decline/{patientId}/{orderId}",
-                        faker.idNumber().valid(), faker.idNumber().invalid()))
-                .andExpect(status().isAccepted());
+                        "/orders/decline/{orderId}", faker.idNumber().invalid()))
+                .andExpect(status().isNoContent());
     }
 
     @Test
-    public void getAllOrdersAPI() throws Exception {
+    public void getOrdersByPatientIdsAndPatientStateAPI() throws Exception {
         mvc.perform(MockMvcRequestBuilders
-                        .get("/orders/all")
+                        .get("/orders?patientIds=1,2,3&patientState=ACTIVE")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

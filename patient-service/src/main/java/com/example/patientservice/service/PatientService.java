@@ -12,14 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.example.patientservice.Utils.getTimestampNow;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +33,6 @@ public class PatientService {
     }
 
     public Patient updatePatient(String patientId, PatientRequest patientRequest) {
-        Patient patient = patientMapper.patientRequestToPatient(patientRequest);
         Patient foundPatient = patientRepository
                 .findById(patientId)
                 .orElseThrow(() -> {
@@ -44,21 +40,9 @@ public class PatientService {
                             HttpStatus.NOT_FOUND, "Patient for updating not found");
                 });
 
-        updatePatient(patient, foundPatient);
+        patientMapper.updatePatientFromRequest(foundPatient, patientRequest);
 
         return patientRepository.save(foundPatient);
-    }
-
-    private void updatePatient(Patient patientFrom, Patient patientTo) {
-        if (patientFrom.getPatientState() != null) {
-            patientTo.setPatientState(patientFrom.getPatientState());
-        }
-        if (patientFrom.getFirstName() != null) {
-            patientTo.setFirstName(patientFrom.getFirstName());
-        }
-        if (patientFrom.getLastName() != null) {
-            patientTo.setLastName(patientFrom.getLastName());
-        }
     }
 
     public void deactivatePatient(String patientId) {
@@ -73,22 +57,29 @@ public class PatientService {
         patientRepository.deleteById(foundPatient.getPatientId());
     }
 
-    public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders() {
+    public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders(List<String> patientIds) {
+        String[] patientIdsArray = new String[patientIds.size()];
+        patientIds.toArray(patientIdsArray);
+
         Map<String, List<Order>> activeOrders =
-                orderConsumer.getAllOrdersByState("ACTIVE")
-                .stream()
-                .collect(Collectors.groupingBy(Order::getPatientId));
+                orderConsumer.getOrdersByPatientIdsAndPatientState(patientIdsArray,"ACTIVE")
+                        .stream()
+                        .collect(Collectors.groupingBy(Order::getPatientId));
 
         Map<JSONObject, List<Order>> patientsWithTheirOrders = new HashMap<>();
-        for (Patient patient : patientRepository.findAll()) {
-            if (activeOrders.get(patient.getPatientId()) != null) {
+        for (Optional<Patient> patient : getPatientsByIds(patientIds)) {
+            if (activeOrders.get(patient.get().getPatientId()) != null) {
                 patientsWithTheirOrders.put(
-                        new JSONObject(patient),
-                        activeOrders.get(patient.getPatientId())
+                        new JSONObject(patient.get()),
+                        activeOrders.get(patient.get().getPatientId())
                 );
             }
         }
 
         return patientsWithTheirOrders;
+    }
+
+    private List<Optional<Patient>> getPatientsByIds(List<String> patientIds) {
+        return patientIds.stream().map(patientRepository::findById).collect(Collectors.toList());
     }
 }

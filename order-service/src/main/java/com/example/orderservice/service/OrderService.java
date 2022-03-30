@@ -10,10 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.example.orderservice.Utils.getTimestampNow;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +29,6 @@ public class OrderService {
     }
 
     public Order updateOrder(String orderId, OrderRequest orderRequest) {
-        Order order = orderMapper.orderRequestToOrder(orderRequest);
         Order foundOrder = orderRepository
                 .findByOrderId(orderId)
                 .orElseThrow(() -> {
@@ -38,18 +36,9 @@ public class OrderService {
                             HttpStatus.NOT_FOUND, "Order for updating not found");
                 });
 
-        updateOrder(order, foundOrder);
+        orderMapper.updateOrderFromRequest(foundOrder, orderRequest);
 
         return orderRepository.save(foundOrder);
-    }
-
-    private void updateOrder(Order order, Order foundOrder) {
-        if (order.getOrderComment() != null) {
-            foundOrder.setOrderComment(order.getOrderComment());
-        }
-        if (order.getOrderState() != null) {
-            foundOrder.setOrderState(order.getOrderState());
-        }
     }
 
     public void declineOrder(String orderId) {
@@ -63,7 +52,17 @@ public class OrderService {
         orderRepository.deleteById(foundOrder.getId());
     }
 
-    public List<Order> getAllOrdersByState(String orderState) {
-        return orderRepository.findByOrderState(OrderState.valueOf(orderState).name());
+    public List<Order> getOrdersByPatientIdsAndOrderState(
+            List<String> patientIds, String orderState) {
+        List<Order> result = new ArrayList<>();
+
+        for (String patientId : patientIds) {
+            result.addAll(orderRepository.findByPatientIdAndOrderState(patientId, orderState));
+        }
+        return result;
+    }
+
+    public List<Order> getByPatientIdAndOrderState(String patientId, String orderState) {
+        return orderRepository.findByPatientIdAndOrderState(patientId, orderState);
     }
 }

@@ -20,8 +20,6 @@ public class OrderRequest {
     @NotNull(message = "Patient id cannot be null")
     private String patientId;
 
-    private String orderId;
-
     @NotNull
     @Size(min = 10, max = 200, message
             = "Comment must be between 10 and 200 characters")

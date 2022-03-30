@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.example.patientservice.Utils.asJsonString;
-import static com.example.patientservice.service.TestEntityProvider.patient;
-import static com.example.patientservice.service.TestEntityProvider.patientRequest;
+import static com.example.patientservice.service.TestEntityProvider.buildPatient;
+import static com.example.patientservice.service.TestEntityProvider.buildPatientRequest;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,9 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = {"spring.cloud.config.enabled=false", "spring.cloud.discovery.enabled=false"},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(
-        initializers = {PatientServiceIntegrationTest.Initializer.class}
+        initializers = {PatientEndToEndIntegrationTest.Initializer.class}
 )
-public class PatientServiceIntegrationTest {
+public class PatientEndToEndIntegrationTest {
 
     public static final String PROJECT_ID = "test-project";
     public static final String INSTANCE_NAME = "test-instance";
@@ -116,12 +116,12 @@ public class PatientServiceIntegrationTest {
 
     @Test
     public void updatePatientReturnsHttpStatusOk() throws Exception {
-        Patient patient = patient();
+        Patient patient = buildPatient();
         Patient savedPatient = patientRepository.save(patient);
 
         mockMvc.perform(MockMvcRequestBuilders
                         .put("/patients/update/{id}", savedPatient.getPatientId())
-                        .content(asJsonString(patientRequest()))
+                        .content(asJsonString(buildPatientRequest()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -130,7 +130,7 @@ public class PatientServiceIntegrationTest {
 
     @Test
     public void deletePatientReturnsHttpStatusAccept() throws Exception {
-        Patient patient = patient();
+        Patient patient = buildPatient();
         Patient savedPatient = patientRepository.save(patient);
 
         mockMvc.perform(MockMvcRequestBuilders.delete(

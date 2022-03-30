@@ -25,7 +25,7 @@ public class PatientController {
 
     @PostMapping("/create")
     public ResponseEntity<Patient> createPatient(@Valid @RequestBody PatientRequest patientRequest) {
-        log.info("New patient registration {}", patientRequest);
+        log.info("Patient {} was created", patientRequest);
         return new ResponseEntity<>(
                 patientService.createPatient(patientRequest),
                 HttpStatus.CREATED);
@@ -34,7 +34,7 @@ public class PatientController {
     @PutMapping("/update/{patientId}")
     public ResponseEntity<Patient> updatePatient(@PathVariable("patientId") String patientId,
                                                  @Valid @RequestBody PatientRequest patientRequest) {
-        log.info("Patient updated {}", patientRequest);
+        log.info("Patient with patientId {} was updated", patientRequest);
         return new ResponseEntity<>(
                 patientService.updatePatient(patientId, patientRequest),
                 HttpStatus.OK);
@@ -42,15 +42,18 @@ public class PatientController {
 
     @DeleteMapping("/deactivate/{patientId}")
     public ResponseEntity<HttpStatus> deactivatePatient(@PathVariable("patientId") String patientId) {
-        log.info("Patient deactivated with patientId {}", patientId);
+        log.info("Patient with patientId {} was deactivated", patientId);
         patientService.deactivatePatient(patientId);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<Map<JSONObject, List<Order>>> getPatientListWithTheirActiveOrders() {
-        log.info("Get patients with their orders");
-        return new ResponseEntity<>(patientService.getPatientListWithTheirActiveOrders(), HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<Map<JSONObject, List<Order>>> getPatientListWithTheirActiveOrders(
+            @RequestParam("patientIds") List<String> patientIds
+    ) {
+        log.info("Get patients with their active orders");
+        return new ResponseEntity<>(patientService.getPatientListWithTheirActiveOrders(patientIds),
+                HttpStatus.OK);
     }
 }

@@ -13,9 +13,6 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PatientRequest {
-    @NotNull(message = "Patient id cannot be null")
-    private String patientId;
-
     @NotNull(message = "First name cannot be null")
     private String firstName;
 

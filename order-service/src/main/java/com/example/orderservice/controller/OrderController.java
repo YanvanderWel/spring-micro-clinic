@@ -24,7 +24,7 @@ public class OrderController {
 
     @PostMapping("/create")
     public ResponseEntity<Order> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
-        log.info("New order registration {}", orderRequest);
+        log.info("Order {} was created", orderRequest);
         return new ResponseEntity<>(
                 orderService.createOrder(orderRequest),
                 HttpStatus.CREATED);
@@ -33,7 +33,7 @@ public class OrderController {
     @PutMapping("/update/{orderId}")
     public ResponseEntity<Order> updateOrder(@PathVariable String orderId,
                                              @Valid @RequestBody OrderRequest orderRequest) {
-        log.info("Order updated {}", orderRequest);
+        log.info("Order with orderId {} was updated", orderRequest);
         return new ResponseEntity<>(
                 orderService.updateOrder(orderId, orderRequest),
                 HttpStatus.OK);
@@ -41,17 +41,39 @@ public class OrderController {
 
     @DeleteMapping("/decline/{orderId}")
     public ResponseEntity<HttpStatus> declineOrder(@PathVariable String orderId) {
-        log.info("Order declined with id {}", orderId);
+        log.info("Order with id {} was declined", orderId);
         orderService.declineOrder(orderId);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Order>> getAllOrders(@RequestParam Optional<String> orderState) {
-        log.info("All {} orders received", orderState.orElse("NOT PROVIDED"));
+    @GetMapping(params = {"patientIds", "orderState"})
+    public ResponseEntity<List<Order>> getOrdersByPatientIdsAndOrderState(
+            @RequestParam(name = "patientIds") List<String> patientIds,
+            @RequestParam(name = "orderState") Optional<String> orderState
+    ) {
+
+        log.info("All orders with patientIds {} and orderState {} were received",
+                patientIds.toString(), orderState);
+
         return new ResponseEntity<>(
-                orderService.getAllOrdersByState(orderState.orElse("NOT PROVIDED")),
+                orderService.getOrdersByPatientIdsAndOrderState(
+                        patientIds, orderState.orElse("NOT PROVIDED")),
+                HttpStatus.OK);
+    }
+
+    @GetMapping(params = {"patientId", "orderState"})
+    public ResponseEntity<List<Order>> getOrdersByPatientIdAndOrderState(
+            @RequestParam(name = "patientId") String patientIds,
+            @RequestParam(name = "orderState") Optional<String> orderState
+    ) {
+
+        log.info("All orders with patientIds {} and orderState {} were received",
+                patientIds, orderState);
+
+        return new ResponseEntity<>(
+                orderService.getByPatientIdAndOrderState(
+                        patientIds, orderState.orElse("NOT PROVIDED")),
                 HttpStatus.OK);
     }
 }

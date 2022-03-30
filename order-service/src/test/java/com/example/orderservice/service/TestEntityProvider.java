@@ -12,20 +12,19 @@ public class TestEntityProvider {
 
     public static final Faker faker = new Faker(new Locale("en-GB"));
 
-    public static Order order() {
+    public static Order buildOrder() {
         return Order.builder()
                 .patientId(faker.idNumber().valid())
                 .orderId(faker.idNumber().invalid())
-                .orderComment(faker.app().name())
+                .orderComment("Test comment")
                 .orderState(OrderState.ACTIVE.name())
                 .build();
     }
 
-    public static OrderRequest orderRequest() {
+    public static OrderRequest buildOrderRequest() {
         return OrderRequest.builder()
                 .patientId(faker.idNumber().valid())
-                .orderId(faker.idNumber().invalid())
-                .orderComment(faker.app().name())
+                .orderComment("Test comment")
                 .orderState(OrderState.ACTIVE)
                 .build();
     }

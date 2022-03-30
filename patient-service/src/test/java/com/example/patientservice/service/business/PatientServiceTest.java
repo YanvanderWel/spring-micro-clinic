@@ -8,7 +8,6 @@ import com.example.patientservice.mapper.PatientMapperImpl;
 import com.example.patientservice.model.Patient;
 import com.example.patientservice.repository.PatientRepository;
 import com.example.patientservice.service.PatientService;
-import com.github.javafaker.Faker;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,12 +15,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
-import static com.example.patientservice.service.TestEntityProvider.patient;
-import static com.example.patientservice.service.TestEntityProvider.patientRequest;
+import static com.example.patientservice.service.TestEntityProvider.buildPatient;
+import static com.example.patientservice.service.TestEntityProvider.buildPatientRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,7 +48,7 @@ class PatientServiceTest {
     @Test
     void givenPatient_whenSave_thenPatientHasFirstName() {
 
-        PatientRequest patientRequest = patientRequest();
+        PatientRequest patientRequest = buildPatientRequest();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
 
@@ -62,8 +60,8 @@ class PatientServiceTest {
 
     @Test
     void givenPatient_whenUpdate_thenPatientHasAnotherFirstName() {
-        Patient patient = patient();
-        PatientRequest patientRequest = patientRequest();
+        Patient patient = buildPatient();
+        PatientRequest patientRequest = buildPatientRequest();
 
         when(patientRepository.save(any(Patient.class))).then(returnsFirstArg());
         when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
@@ -75,7 +73,7 @@ class PatientServiceTest {
 
     @Test
     void givenPatient_whenDeactivate_thenPatientHasInactiveState() {
-        Patient patient = patient();
+        Patient patient = buildPatient();
 
         when(patientRepository.findById(anyString())).thenReturn(Optional.of(patient));
 
@@ -86,7 +84,7 @@ class PatientServiceTest {
 
     @Test
     void givenPatientAndOrderLists_whenMapThem_thenFirstPatientHasOnlyOneOrder() {
-        Patient patient = patient();
+        Patient patient = buildPatient();
 
         List<Order> activeOrders = new ArrayList<>();
         Order order = Order.builder()
@@ -99,12 +97,13 @@ class PatientServiceTest {
         List<Patient> patients = new ArrayList<>();
         patients.add(patient);
 
-        when(orderConsumer.getAllOrdersByState("ACTIVE")).thenReturn(activeOrders);
+        when(orderConsumer.getOrdersByPatientIdsAndPatientState(any(), "ACTIVE")).thenReturn(activeOrders);
 
         when(patientRepository.findAll()).thenReturn(patients);
 
         Map.Entry<JSONObject, List<Order>> entry =
-                patientService.getPatientListWithTheirActiveOrders().entrySet().iterator().next();
+                patientService.getPatientListWithTheirActiveOrders(any())
+                        .entrySet().iterator().next();
         List<Order> orders = entry.getValue();
 
         assertThat(orders.size()).isEqualTo(1);
