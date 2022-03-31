@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Order.OrderEntryPK> {
     List<Order> findByPatientIdAndOrderState(String patientId, String orderState);
+    List<Order> findByPatientIdInAndOrderState(List<String> patientIds, String orderState);
     Optional<Order> findByOrderId(String orderId);
 }

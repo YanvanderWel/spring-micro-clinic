@@ -16,7 +16,7 @@ public class TestEntityProvider {
         return Order.builder()
                 .patientId(faker.idNumber().valid())
                 .orderId(faker.idNumber().invalid())
-                .orderComment("Test comment")
+                .orderComment(faker.letterify("???? ???????"))
                 .orderState(OrderState.ACTIVE.name())
                 .build();
     }
@@ -24,7 +24,7 @@ public class TestEntityProvider {
     public static OrderRequest buildOrderRequest() {
         return OrderRequest.builder()
                 .patientId(faker.idNumber().valid())
-                .orderComment("Test comment")
+                .orderComment(faker.letterify("???? ???????"))
                 .orderState(OrderState.ACTIVE)
                 .build();
     }

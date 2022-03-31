@@ -1,5 +1,6 @@
 package com.example.patientservice.controller;
 
+import com.example.patientservice.dto.PatientIdWrapper;
 import com.example.patientservice.data.Order;
 import com.example.patientservice.dto.PatientRequest;
 import com.example.patientservice.model.Patient;
@@ -25,35 +26,41 @@ public class PatientController {
 
     @PostMapping("/create")
     public ResponseEntity<Patient> createPatient(@Valid @RequestBody PatientRequest patientRequest) {
-        log.info("Patient {} was created", patientRequest);
-        return new ResponseEntity<>(
+        ResponseEntity<Patient> patientResponseEntity = new ResponseEntity<>(
                 patientService.createPatient(patientRequest),
                 HttpStatus.CREATED);
+
+        log.info("Patient {} was created", patientRequest);
+        return patientResponseEntity;
     }
 
     @PutMapping("/update/{patientId}")
     public ResponseEntity<Patient> updatePatient(@PathVariable("patientId") String patientId,
                                                  @Valid @RequestBody PatientRequest patientRequest) {
-        log.info("Patient with patientId {} was updated", patientRequest);
-        return new ResponseEntity<>(
+        ResponseEntity<Patient> patientResponseEntity = new ResponseEntity<>(
                 patientService.updatePatient(patientId, patientRequest),
                 HttpStatus.OK);
+
+        log.info("Patient with patientId {} was updated", patientRequest);
+        return patientResponseEntity;
     }
 
     @DeleteMapping("/deactivate/{patientId}")
     public ResponseEntity<HttpStatus> deactivatePatient(@PathVariable("patientId") String patientId) {
-        log.info("Patient with patientId {} was deactivated", patientId);
         patientService.deactivatePatient(patientId);
 
+        log.info("Patient with patientId {} was deactivated", patientId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping
+    @PostMapping
     public ResponseEntity<Map<JSONObject, List<Order>>> getPatientListWithTheirActiveOrders(
-            @RequestParam("patientIds") List<String> patientIds
+            @RequestBody PatientIdWrapper patientIdsWrapper
     ) {
         log.info("Get patients with their active orders");
-        return new ResponseEntity<>(patientService.getPatientListWithTheirActiveOrders(patientIds),
-                HttpStatus.OK);
+        return new ResponseEntity<>(
+                patientService.getPatientListWithTheirActiveOrders(patientIdsWrapper),
+                HttpStatus.OK
+        );
     }
 }

@@ -1,7 +1,7 @@
 package com.example.orderservice.controller;
 
+import com.example.orderservice.dto.PatientIdWrapper;
 import com.example.orderservice.dto.OrderRequest;
-import com.example.orderservice.mapper.OrderMapper;
 import com.example.orderservice.model.Order;
 import com.example.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -24,56 +24,60 @@ public class OrderController {
 
     @PostMapping("/create")
     public ResponseEntity<Order> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
-        log.info("Order {} was created", orderRequest);
-        return new ResponseEntity<>(
+        ResponseEntity<Order> orderResponseEntity = new ResponseEntity<>(
                 orderService.createOrder(orderRequest),
                 HttpStatus.CREATED);
+
+        log.info("Order {} was created", orderRequest);
+        return orderResponseEntity;
     }
 
     @PutMapping("/update/{orderId}")
     public ResponseEntity<Order> updateOrder(@PathVariable String orderId,
                                              @Valid @RequestBody OrderRequest orderRequest) {
-        log.info("Order with orderId {} was updated", orderRequest);
-        return new ResponseEntity<>(
+        ResponseEntity<Order> orderResponseEntity = new ResponseEntity<>(
                 orderService.updateOrder(orderId, orderRequest),
                 HttpStatus.OK);
+
+        log.info("Order with orderId {} was updated", orderRequest);
+        return orderResponseEntity;
     }
 
     @DeleteMapping("/decline/{orderId}")
     public ResponseEntity<HttpStatus> declineOrder(@PathVariable String orderId) {
-        log.info("Order with id {} was declined", orderId);
         orderService.declineOrder(orderId);
 
+        log.info("Order with id {} was declined", orderId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(params = {"patientIds", "orderState"})
+    @PostMapping
     public ResponseEntity<List<Order>> getOrdersByPatientIdsAndOrderState(
-            @RequestParam(name = "patientIds") List<String> patientIds,
+            @RequestBody PatientIdWrapper patientIdsWrapper,
             @RequestParam(name = "orderState") Optional<String> orderState
     ) {
 
         log.info("All orders with patientIds {} and orderState {} were received",
-                patientIds.toString(), orderState);
+                patientIdsWrapper.getPatientIds().toString(), orderState);
 
         return new ResponseEntity<>(
                 orderService.getOrdersByPatientIdsAndOrderState(
-                        patientIds, orderState.orElse("NOT PROVIDED")),
+                        patientIdsWrapper.getPatientIds(), orderState.orElse("NOT PROVIDED")),
                 HttpStatus.OK);
     }
 
-    @GetMapping(params = {"patientId", "orderState"})
+    @GetMapping
     public ResponseEntity<List<Order>> getOrdersByPatientIdAndOrderState(
-            @RequestParam(name = "patientId") String patientIds,
+            @RequestParam(name = "patientId") String patientId,
             @RequestParam(name = "orderState") Optional<String> orderState
     ) {
 
         log.info("All orders with patientIds {} and orderState {} were received",
-                patientIds, orderState);
+                patientId, orderState);
 
         return new ResponseEntity<>(
                 orderService.getByPatientIdAndOrderState(
-                        patientIds, orderState.orElse("NOT PROVIDED")),
+                        patientId, orderState.orElse("NOT PROVIDED")),
                 HttpStatus.OK);
     }
 }

@@ -20,7 +20,7 @@ import java.sql.Timestamp;
 @Builder
 @Data
 @IdClass(Order.OrderEntryPK.class)
-public class Order extends AbstractTimestampEntity implements Serializable {
+public class Order extends AbstractTimestampEntity {
 
     @Id
     private String patientId;

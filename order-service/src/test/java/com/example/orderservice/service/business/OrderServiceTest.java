@@ -82,7 +82,7 @@ class OrderServiceTest {
                 .thenReturn(List.of(new Order(), new Order()));
 
         List<Order> allActiveOrders = orderService
-                .getOrdersByPatientIdsAndPatientState(List.of("1", "2"), faker.idNumber().toString());
+                .getOrdersByPatientIdsAndOrderState(List.of("1", "2"), faker.idNumber().toString());
 
         assertThat(allActiveOrders).hasSize(2);
     }

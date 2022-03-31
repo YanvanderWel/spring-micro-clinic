@@ -54,12 +54,8 @@ public class OrderService {
 
     public List<Order> getOrdersByPatientIdsAndOrderState(
             List<String> patientIds, String orderState) {
-        List<Order> result = new ArrayList<>();
 
-        for (String patientId : patientIds) {
-            result.addAll(orderRepository.findByPatientIdAndOrderState(patientId, orderState));
-        }
-        return result;
+        return orderRepository.findByPatientIdInAndOrderState(patientIds, orderState);
     }
 
     public List<Order> getByPatientIdAndOrderState(String patientId, String orderState) {
