@@ -21,13 +21,13 @@ services:
               gcloud spanner databases create patients --instance=$${INSTANCE_NAME}
               gcloud spanner databases create orders --instance=$${INSTANCE_NAME}'
 
-  spanner-cli:
-    image: sjdaws/spanner-cli:latest
-    environment:
-      SPANNER_EMULATOR_HOST: "spanner:9010"
-    depends_on:
-      - "gcloud-spanner-init"
-    command: [ 'sh', '-c', 'echo spanner client.... && tail -f /dev/null' ]
+#  spanner-cli:
+#    image: sjdaws/spanner-cli:latest
+#    environment:
+#      SPANNER_EMULATOR_HOST: "spanner:9010"
+#    depends_on:
+#      - "gcloud-spanner-init"
+#    command: [ 'sh', '-c', 'echo spanner client.... && tail -f /dev/null' ]
 
   eureka-server:
     image: eureka-server:v1

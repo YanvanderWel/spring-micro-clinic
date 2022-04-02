@@ -1,8 +1,8 @@
 package com.example.patientservice.service;
 
-import com.example.patientservice.dto.PatientIdWrapper;
 import com.example.patientservice.client.OrderConsumer;
 import com.example.patientservice.data.Order;
+import com.example.patientservice.dto.PatientIdWrapper;
 import com.example.patientservice.dto.PatientRequest;
 import com.example.patientservice.mapper.PatientMapper;
 import com.example.patientservice.model.Patient;
@@ -16,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,31 +57,26 @@ public class PatientService {
         patientRepository.deleteById(foundPatient.getPatientId());
     }
 
-    public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders(PatientIdWrapper patientIdsWrapper) {
+    public List<Patient> getAllPatients() {
+        return patientRepository.findAll();
+    }
+
+    public Map<JSONObject, List<Order>> getPatientListWithTheirActiveOrders(
+            PatientIdWrapper patientIdsWrapper) {
         Map<String, List<Order>> activeOrders =
                 orderConsumer.getOrdersByPatientIdsAndPatientState(patientIdsWrapper, "ACTIVE")
                         .stream()
                         .collect(Collectors.groupingBy(Order::getPatientId));
 
         Map<JSONObject, List<Order>> patientsWithTheirOrders = new HashMap<>();
-        for (Optional<Patient> patient : getPatientsByIds(patientIdsWrapper.getPatientIds())) {
-            patient.ifPresent(p -> {
-                if (activeOrders.get(p.getPatientId()) != null) {
-                    patientsWithTheirOrders.put(
-                            new JSONObject(p),
-                            activeOrders.get(p.getPatientId())
-                    );
-                }
-            });
-
+        for (Patient patient : patientRepository.findByPatientIdIn(patientIdsWrapper.getPatientIds())) {
+            if (activeOrders.get(patient.getPatientId()) != null) {
+                patientsWithTheirOrders.put(
+                        new JSONObject(patient),
+                        activeOrders.get(patient.getPatientId())
+                );
+            }
         }
-
         return patientsWithTheirOrders;
-    }
-
-    private List<Optional<Patient>> getPatientsByIds(List<String> patientIds) {
-        return patientIds.stream()
-                .map(patientRepository::findById)
-                .collect(Collectors.toList());
     }
 }

@@ -53,6 +53,11 @@ public class PatientController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @GetMapping
+    public ResponseEntity<List<Patient>> getAllPatients() {
+        return new ResponseEntity<>(patientService.getAllPatients(), HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<Map<JSONObject, List<Order>>> getPatientListWithTheirActiveOrders(
             @RequestBody PatientIdWrapper patientIdsWrapper

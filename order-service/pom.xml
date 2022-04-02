@@ -6,7 +6,7 @@
         <artifactId>spring-micro-clinic</artifactId>
         <groupId>org.example</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>parent_pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,6 +16,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
+        <start-class>com.example.orderservice.OrderServiceApplication</start-class>
     </properties>
 
     <dependencies>
@@ -117,6 +118,22 @@
 
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <fork>true</fork>
+                    <mainClass>${start-class}</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -61,4 +61,8 @@ public class OrderService {
     public List<Order> getByPatientIdAndOrderState(String patientId, String orderState) {
         return orderRepository.findByPatientIdAndOrderState(patientId, orderState);
     }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
 }

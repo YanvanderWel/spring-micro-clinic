@@ -30,22 +30,21 @@ import java.util.concurrent.ExecutionException;
 import static com.example.patientservice.Utils.asJsonString;
 import static com.example.patientservice.service.TestEntityProvider.buildPatient;
 import static com.example.patientservice.service.TestEntityProvider.buildPatientRequest;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @Testcontainers
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@SpringBootTest(properties = {"spring.cloud.config.enabled=false", "spring.cloud.discovery.enabled=false"},
+@SpringBootTest(properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.discovery.enabled=false"
+},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(
-        initializers = {PatientEndToEndIntegrationTest.Initializer.class}
+        initializers = {IntegrationTestInitializer.class}
 )
 public class PatientEndToEndIntegrationTest {
-
-    public static final String PROJECT_ID = "test-project";
-    public static final String INSTANCE_NAME = "test-instance";
-    public static final String DATABASE_NAME = "patients";
 
     @Autowired
     private PatientRepository patientRepository;
@@ -62,56 +61,24 @@ public class PatientEndToEndIntegrationTest {
                 .build();
     }
 
-    @Container
-    public static final SpannerEmulatorContainer emulator = new SpannerEmulatorContainer(
-            DockerImageName.parse("gcr.io/cloud-spanner-emulator/emulator:1.4.0")
-    );
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        public void initialize(@NotNull ConfigurableApplicationContext configurableApplicationContext) {
-            SpannerOptions options = SpannerOptions.newBuilder()
-                    .setEmulatorHost(emulator.getEmulatorGrpcEndpoint())
-                    .setCredentials(NoCredentials.getInstance())
-                    .setProjectId(PROJECT_ID)
-                    .build();
-
-            Spanner spanner = options.getService();
-
-            try {
-                createInstance(spanner);
-
-                createDatabase(spanner);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-            TestPropertyValues.of(
-                    "spring.datasource.url="
-                            + "jdbc:cloudspanner://" + emulator.getEmulatorGrpcEndpoint()
-                            + "/projects/" + PROJECT_ID
-                            + "/instances/" + INSTANCE_NAME
-                            + "/databases/" + DATABASE_NAME
-                            + ";usePlainText=true",
-                    "spring.datasource.driver-class-name=com.google.cloud.spanner.jdbc.JdbcDriver",
-                    "spring.jpa.database-platform=com.google.cloud.spanner.hibernate.SpannerDialect",
-
-                    "spring.cloud.gcp.spanner.instance-id=" + INSTANCE_NAME,
-                    "spring.cloud.gcp.spanner.database=" + DATABASE_NAME,
-                    "spring.jpa.hibernate.ddl-auto=none",
-
-                    "hibernate.hbm2ddl.auto=none",
-                    "hibernate.show_sql=true"
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
-    }
-
     @Test
     public void createPatientReturnsHttpStatusCreated() throws Exception {
+        Patient patient = buildPatient();
+
+        patientRepository.save(patient);
+        long countBefore = patientRepository.count();
+        assertThat(countBefore).isEqualTo(1L);
+
         this.mockMvc.perform(
                         post("/patients/create")
-                                .content(asJsonString(new Patient()))
+                                .content(asJsonString(buildPatientRequest()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
+
+        patientRepository.save(patient);
+        long countAfter = patientRepository.count();
+        assertThat(countAfter).isEqualTo(3);
     }
 
     @Test
@@ -126,6 +93,7 @@ public class PatientEndToEndIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
+        patientRepository.deleteById(savedPatient.getPatientId());
     }
 
     @Test
@@ -135,18 +103,7 @@ public class PatientEndToEndIntegrationTest {
 
         mockMvc.perform(MockMvcRequestBuilders.delete(
                         "/patients/deactivate/{id}", savedPatient.getPatientId()))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isNoContent());
     }
 
-    private static void createDatabase(Spanner spanner) throws InterruptedException, ExecutionException {
-        DatabaseAdminClient dbAdminClient = spanner.getDatabaseAdminClient();
-        dbAdminClient.createDatabase(INSTANCE_NAME, DATABASE_NAME, List.of()).get();
-    }
-
-    private static void createInstance(Spanner spanner) throws InterruptedException, ExecutionException {
-        InstanceConfigId instanceConfig = InstanceConfigId.of(PROJECT_ID, "emulator-config");
-        InstanceId instanceId = InstanceId.of(PROJECT_ID, INSTANCE_NAME);
-        InstanceAdminClient insAdminClient = spanner.getInstanceAdminClient();
-        insAdminClient.createInstance(InstanceInfo.newBuilder(instanceId).setNodeCount(1).setDisplayName("Test instance").setInstanceConfigId(instanceConfig).build()).get();
-    }
 }

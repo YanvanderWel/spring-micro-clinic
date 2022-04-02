@@ -51,6 +51,11 @@ public class OrderController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @GetMapping
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return new ResponseEntity<>(orderService.getAllOrders(), HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<List<Order>> getOrdersByPatientIdsAndOrderState(
             @RequestBody PatientIdWrapper patientIdsWrapper,
@@ -66,7 +71,7 @@ public class OrderController {
                 HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping(params = {"patientId", "orderState"})
     public ResponseEntity<List<Order>> getOrdersByPatientIdAndOrderState(
             @RequestParam(name = "patientId") String patientId,
             @RequestParam(name = "orderState") Optional<String> orderState
