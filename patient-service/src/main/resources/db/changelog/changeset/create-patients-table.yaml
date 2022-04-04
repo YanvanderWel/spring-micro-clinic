@@ -1,0 +1,29 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: create-patients
+      author: Yan
+      changes:
+        - createTable:
+            tableName: patients
+            columns:
+              - column:
+                  name: patient_id
+                  type: STRING(MAX)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: first_name
+                  type: STRING(MAX)
+              - column:
+                  name: last_name
+                  type: STRING(MAX)
+              - column:
+                  name: create_date_time_gmt
+                  type: TIMESTAMP
+              - column:
+                  name: update_date_time_gmt
+                  type: TIMESTAMP
+              - column:
+                  name: patient_state
+                  type: STRING(MAX)
